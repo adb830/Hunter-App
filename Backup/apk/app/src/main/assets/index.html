@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#132b1f" />
+<title>Backcountry Hunter — Trip Planner &amp; Field Guide</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2048%2048%27%3E%3Crect%20width%3D%2748%27%20height%3D%2748%27%20rx%3D%2710%27%20fill%3D%27%23132b1f%27%2F%3E%3Ccircle%20cx%3D%2724%27%20cy%3D%2724%27%20r%3D%2713%27%20fill%3D%27none%27%20stroke%3D%27%23f97316%27%20stroke-width%3D%273.2%27%2F%3E%3Cpath%20d%3D%27M24%204%20L24%2010.5%20M24%2037.5%20L24%2044%20M4%2024%20L10.5%2024%20M37.5%2024%20L44%2024%27%20stroke%3D%27%23f97316%27%20stroke-width%3D%272.2%27%20stroke-linecap%3D%27round%27%2F%3E%3Ccircle%20cx%3D%2724%27%20cy%3D%2724%27%20r%3D%275%27%20fill%3D%27%23ef4444%27%2F%3E%3C%2Fsvg%3E" />
+<style>
+  body { -webkit-tap-highlight-color: transparent; }
+  .card-shadow { box-shadow: 0 10px 25px -12px rgba(0,0,0,.6); }
+  .fade-in { animation: fade .35s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .tab-btn.active { background-color: #ea580c; color: #fff; }
+  .accordion-panel { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #255039; border-radius: 9999px; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+  #gmuMap .leaflet-container { background:#0e2016; font-family:inherit; }
+  .file-chip { max-width: 100%; }
+</style>
+<link rel="stylesheet" href="leaflet/leaflet.css" />
+<script src="leaflet/leaflet.js"></script>
+  <link rel="stylesheet" href="tailwind.css" />
+</head>
+<body class="bg-forest-900 text-tan-300 antialiased min-h-screen flex flex-col">
+
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-40 bg-forest-800/95 backdrop-blur border-b-2 border-blaze-500">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+    <div class="w-10 h-10 shrink-0 rounded-lg bg-blaze-500 grid place-items-center text-forest-900 text-xl font-bold">🦌</div>
+    <div class="leading-tight">
+      <h1 class="font-display text-lg sm:text-xl text-tan-300 font-bold tracking-wide">Backcountry Hunter</h1>
+      <p class="text-[11px] sm:text-xs text-tan-500">Trip Planner &amp; Field Guide</p>
+    </div>
+    <span id="saveDot" class="ml-auto text-[10px] uppercase tracking-widest text-forest-500 transition-opacity opacity-0">Saved</span>
+  </div>
+</header>
+
+<!-- ============ NAV TABS ============ -->
+<nav class="sticky top-[61px] z-30 bg-forest-700/95 backdrop-blur border-b border-forest-600">
+  <div class="max-w-5xl mx-auto px-2">
+    <div class="flex gap-1 overflow-x-auto py-2">
+      <button data-tab="planner"  class="tab-btn active whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-tan-400 hover:text-white hover:bg-forest-600 transition">📋 Trip Planner</button>
+      <button data-tab="wildlife" class="tab-btn whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-tan-400 hover:text-white hover:bg-forest-600 transition">🦌 Wildlife &amp; Timing</button>
+      <button data-tab="shot"     class="tab-btn whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-tan-400 hover:text-white hover:bg-forest-600 transition">🎯 Shot Placement</button>
+      <button data-tab="safety"   class="tab-btn whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-tan-400 hover:text-white hover:bg-forest-600 transition">🛡️ Safety &amp; Knowledge</button>
+      <button data-tab="maps"     class="tab-btn whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-tan-400 hover:text-white hover:bg-forest-600 transition">🗺️ Maps</button>
+      <button data-tab="humor"    class="tab-btn whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-tan-400 hover:text-white hover:bg-forest-600 transition">😂 Campfire</button>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 space-y-8">
+
+  <!-- ================= 1. TRIP PLANNER ================= -->
+  <section id="tab-planner" class="tab-panel fade-in space-y-6">
+    <div>
+      <h2 class="font-display text-2xl text-tan-300 font-bold">Trip Planner</h2>
+      <p class="text-sm text-tan-500">Plan dates, headcount, and who's bringing what. Saved automatically in your browser.</p>
+    </div>
+
+    <!-- Dates + hunters -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-tan-500">Start Date</span>
+          <input id="tripStart" type="date" class="mt-1 w-full rounded-lg bg-forest-900 border border-forest-600 px-3 py-2 text-tan-300 focus:border-blaze-500 focus:outline-none" />
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-tan-500">End Date</span>
+          <input id="tripEnd" type="date" class="mt-1 w-full rounded-lg bg-forest-900 border border-forest-600 px-3 py-2 text-tan-300 focus:border-blaze-500 focus:outline-none" />
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-tan-500">Number of Hunters</span>
+          <div class="mt-1 flex items-stretch gap-2">
+            <input id="hunterCount" type="number" min="1" max="30" value="1"
+                   class="w-full rounded-lg bg-forest-900 border border-forest-600 px-3 py-2 text-tan-300 focus:border-blaze-500 focus:outline-none" />
+            <button id="syncHunters" class="rounded-lg bg-forest-600 hover:bg-forest-500 px-3 text-tan-300 text-sm font-semibold whitespace-nowrap transition">Sync Rows</button>
+          </div>
+        </label>
+      </div>
+      <p id="tripLength" class="text-sm text-tan-500"></p>
+    </div>
+
+    <!-- Meal planner grid -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-lg text-tan-300 font-bold">Meal &amp; Gear Planner</h3>
+          <p class="text-xs text-tan-500">One row per hunter — list meals/gear, then add hunter notes and attachments to each row.</p>
+        </div>
+        <button id="addRow" class="shrink-0 rounded-lg bg-blaze-500 hover:bg-blaze-400 active:bg-blaze-600 text-forest-900 font-bold px-3 py-2 text-sm transition">+ Add Row</button>
+      </div>
+
+      <div id="mealRows" class="space-y-3"></div>
+
+      <p id="emptyRows" class="hidden text-center text-sm text-tan-500 py-6 border border-dashed border-forest-600 rounded-lg">
+        No rows yet — tap “+ Add Row” to start planning.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <button id="clearPlan" class="rounded-lg border border-red-500/60 text-red-300 hover:bg-red-500/10 px-4 py-2 text-sm font-semibold transition">Clear Plan</button>
+      <span class="text-xs text-tan-500 self-center">Everything is stored locally on this device only.</span>
+    </div>
+  </section>
+
+  <!-- ================= 2. WILDLIFE GUIDE ================= -->
+  <section id="tab-wildlife" class="tab-panel hidden space-y-6">
+    <div>
+      <h2 class="font-display text-2xl text-tan-300 font-bold">Wildlife Resource &amp; Hunting Timing</h2>
+      <p class="text-sm text-tan-500">Species profiles, identification, and the best times to be in the field. Always confirm season dates with your wildlife agency — Colorado hunters, get the official picture at <a href="https://cpw.state.co.us/" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Colorado Parks &amp; Wildlife</a>.</p>
+    </div>
+
+    <div id="speciesTabs" class="flex gap-2 overflow-x-auto pb-1">
+      <button data-species="deer"  class="species-btn active whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold bg-blaze-600 text-white transition">Deer</button>
+      <button data-species="elk"   class="species-btn whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold bg-forest-700 text-tan-400 hover:bg-forest-600 transition">Elk</button>
+      <button data-species="bear"  class="species-btn whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold bg-forest-700 text-tan-400 hover:bg-forest-600 transition">Black Bear</button>
+      <button data-species="moose" class="species-btn whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold bg-forest-700 text-tan-400 hover:bg-forest-600 transition">Moose</button>
+      <button data-species="duck"  class="species-btn whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold bg-forest-700 text-tan-400 hover:bg-forest-600 transition">Mallard Duck</button>
+    </div>
+
+    <div id="speciesContent" class="space-y-6"></div>
+  </section>
+
+  <!-- ================= 3. SHOT PLACEMENT ================= -->
+  <section id="tab-shot" class="tab-panel hidden space-y-6">
+    <div>
+      <h2 class="font-display text-2xl text-tan-300 font-bold">Ethical Hunting &amp; Shot Placement</h2>
+      <p class="text-sm text-tan-500">A clean, ethical kill starts with knowing the anatomy and waiting for the right angle. When in doubt — don't shoot.</p>
+    </div>
+
+    <div class="rounded-xl border border-blaze-500/50 bg-blaze-500/10 p-4 text-sm">
+      <strong class="text-blaze-400">Golden rule:</strong> Only take a shot you are certain you can place in the vital zone. Wounded animals suffer and are often lost. Patience and restraint are marks of a true hunter.
+    </div>
+
+    <!-- Angle diagrams -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-forest-800 rounded-xl p-4 card-shadow border border-forest-600">
+        <h3 class="font-display text-lg text-tan-300 font-bold mb-1">Broadside (Best Presentation)</h3>
+        <p class="text-xs text-tan-500 mb-3">Animal facing perpendicular (90°) — the largest, cleanest vital target.</p>
+        <div class="rounded-lg bg-forest-900 border border-forest-600 p-3 grid place-items-center">
+          <!-- Broadside diagram -->
+          <svg viewBox="0 0 360 180" class="w-full max-w-sm" role="img" aria-label="Broadside deer shot placement diagram">
+            <ellipse cx="185" cy="105" rx="95" ry="46" fill="#255039" stroke="#d9c7a3" stroke-width="2"/>
+            <path d="M265 100 l48 -26 v14 l-30 20 z" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="2"/>
+            <path d="M300 76 l10 -30 6 4 -6 30 z" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="2"/>
+            <path d="M118 84 l-26 -22 6 -8 30 22 z" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="2"/>
+            <!-- legs -->
+            <rect x="130" y="140" width="9" height="34" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="1.5"/>
+            <rect x="175" y="146" width="9" height="28" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="1.5"/>
+            <rect x="230" y="142" width="9" height="32" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="1.5"/>
+            <!-- vital zone -->
+            <circle cx="163" cy="98" r="30" fill="#ea580c" fill-opacity="0.35" stroke="#ff8a2b" stroke-width="2.5"/>
+            <circle cx="156" cy="98" r="9" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+            <text x="163" y="55" fill="#ff8a2b" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">VITAL ZONE</text>
+            <line x1="163" y1="60" x2="163" y2="80" stroke="#ff8a2b" stroke-width="2" marker-end="url(#arrow)"/>
+            <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#ff8a2b"/></marker></defs>
+          </svg>
+        </div>
+        <ul class="mt-3 space-y-1 text-sm text-tan-400">
+          <li>• Aim just behind the front shoulder, about <strong class="text-tan-300">⅓ up</strong> from the belly line.</li>
+          <li>• Zero on the <span class="text-red-300 font-semibold">heart</span> for the highest-margin, quickest kill.</li>
+          <li>• Break the near-side shoulder only when you need to anchor the animal.</li>
+        </ul>
+      </div>
+
+      <div class="bg-forest-800 rounded-xl p-4 card-shadow border border-forest-600">
+        <h3 class="font-display text-lg text-tan-300 font-bold mb-1">Quartering-Away</h3>
+        <p class="text-xs text-tan-500 mb-3">Animal angled away from you — entry is behind the ribs, so aim further back.</p>
+        <div class="rounded-lg bg-forest-900 border border-forest-600 p-3 grid place-items-center">
+          <!-- Quartering away diagram -->
+          <svg viewBox="0 0 360 180" class="w-full max-w-sm" role="img" aria-label="Quartering away deer shot placement diagram">
+            <ellipse cx="185" cy="105" rx="95" ry="44" fill="#255039" stroke="#d9c7a3" stroke-width="2" transform="rotate(-18 185 105)"/>
+            <path d="M262 88 l52 -8 -4 15 -36 12 z" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="2"/>
+            <path d="M306 74 l12 -32 6 5 -8 32 z" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="2"/>
+            <rect x="132" y="128" width="9" height="40" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="1.5"/>
+            <rect x="182" y="134" width="9" height="34" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="1.5"/>
+            <rect x="234" y="118" width="9" height="46" fill="#1b3a2b" stroke="#d9c7a3" stroke-width="1.5"/>
+            <circle cx="150" cy="100" r="27" fill="#ea580c" fill-opacity="0.35" stroke="#ff8a2b" stroke-width="2.5"/>
+            <circle cx="144" cy="100" r="8" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+            <!-- line of fire -->
+            <line x1="40" y1="60" x2="146" y2="98" stroke="#ff8a2b" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#arrow2)"/>
+            <text x="70" y="48" fill="#ff8a2b" font-size="12" font-weight="700" font-family="sans-serif">LINE OF FIRE</text>
+            <text x="150" y="160" fill="#ff8a2b" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">VITAL ZONE</text>
+            <defs><marker id="arrow2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#ff8a2b"/></marker></defs>
+          </svg>
+        </div>
+        <ul class="mt-3 space-y-1 text-sm text-tan-400">
+          <li>• Aim <strong class="text-tan-300">further back</strong> than broadside to exit through the off-side shoulder.</li>
+          <li>• Envision the arrow/bullet traveling through the animal's chest cavity to the vitals.</li>
+          <li>• Best bow angle is ~30–45° away; pass on steeper rear-quarters shots.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Big game aiming points -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600">
+      <h3 class="font-display text-lg text-tan-300 font-bold mb-3">Big Game Aiming Points — Deer, Moose &amp; Bear</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="rounded-lg border border-green-500/40 bg-green-500/5 p-3">
+          <h4 class="text-green-300 font-bold mb-2">✅ Vital Zone (Heart / Lungs)</h4>
+          <ul class="space-y-2 text-sm text-tan-400">
+            <li>• The humane standard for every big-game animal.</li>
+            <li>• Large target = forgiving of small errors; destroys circulation and drops game fast.</li>
+            <li>• Aim tight to the heart when the animal is calm and broadside.</li>
+            <li>• Bear: vitals sit slightly lower and further forward than deer — follow the front leg up from the elbow.</li>
+            <li>• Moose: massive chest = a generous vital area; avoid the shoulder blade lip on the near side if bowhunting.</li>
+          </ul>
+        </div>
+        <div class="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3">
+          <h4 class="text-amber-300 font-bold mb-2">⚠️ CNS / High-Shoulder Stops</h4>
+          <ul class="space-y-2 text-sm text-tan-400">
+            <li>• Spine / high-shoulder shots drop game instantly, but the target is <strong class="text-tan-300">small</strong>.</li>
+            <li>• Use only when a vital shot is blocked (dangerous game, dogs, or a charging animal).</li>
+            <li>• A miss high or low usually wounds — follow up immediately and ethically.</li>
+            <li>• Never rely on CNS shots for routine hunting; the margin for error is tiny.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-4 rounded-lg border border-red-500/50 bg-red-500/10 p-3">
+        <h4 class="text-red-300 font-bold mb-1">🚫 Why Head &amp; Neck Shots Are Discouraged</h4>
+        <p class="text-sm text-tan-400">A head/neck is a moving, small target sitting right beside the trophy and the esophagus. A near miss shatters the jaw or windpipe — an animal that cannot eat and dies slowly, or a lost animal. Leave head shots for dispatching a downed animal at point-blank range, not for the first shot at un-wounded game.</p>
+      </div>
+    </div>
+
+    <!-- Waterfowl -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600">
+      <h3 class="font-display text-lg text-tan-300 font-bold mb-3">Waterfowl Aiming Points — Mallard Duck</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-lg border border-forest-600 bg-forest-900 p-3">
+          <h4 class="text-blaze-400 font-bold mb-1">Lead the Bird</h4>
+          <p class="text-sm text-tan-400">Match the bird's speed and angle. Common wing-shooting leads: crossing birds need a lot of lead, straight-away birds almost none, incoming birds a touch below. Lead more than feels natural at first.</p>
+        </div>
+        <div class="rounded-lg border border-forest-600 bg-forest-900 p-3">
+          <h4 class="text-blaze-400 font-bold mb-1">Wing-Shooting Mechanics</h4>
+          <p class="text-sm text-tan-400">Swing through the target, mount the gun to your cheek, keep both eyes open on the bird, and follow through after the shot. Do not stop the swing — “stopping the gun” is the #1 cause of missed birds behind the tail.</p>
+        </div>
+        <div class="rounded-lg border border-forest-600 bg-forest-900 p-3">
+          <h4 class="text-blaze-400 font-bold mb-1">Pellet Spread</h4>
+          <p class="text-sm text-tan-400">Pattern-test your load and choke at 30–40 yd. Ducks are taken with a dense pattern centered on the head/upper body. Steel pellets need higher velocity and larger shot size — check what's non-toxic and legal in your area.</p>
+        </div>
+      </div>
+      <p class="mt-3 text-xs text-tan-500">Distance discipline: keep shots inside your proven pattern range. A duck at 45 yd with open choke is a wounded-bird risk, not a limit-bird.</p>
+    </div>
+  </section>
+
+  <!-- ================= 4. SAFETY & KNOWLEDGE ================= -->
+  <section id="tab-safety" class="tab-panel hidden space-y-6">
+    <div>
+      <h2 class="font-display text-2xl text-tan-300 font-bold">Essential Hunter Knowledge &amp; Safety</h2>
+      <p class="text-sm text-tan-500">Tap a section to expand. Nail the fundamentals before you ever leave the truck.</p>
+    </div>
+
+    <div id="accordion" class="space-y-3"></div>
+  </section>
+
+  <!-- ================= 5. MAPS & GMU LOOKUP ================= -->
+  <section id="tab-maps" class="tab-panel hidden space-y-6">
+    <div>
+      <h2 class="font-display text-2xl text-tan-300 font-bold">Maps &amp; GMU Lookup</h2>
+      <p class="text-sm text-tan-500">Look up the Game Management Unit you're hunting and jump straight to boundary maps, regulations, and on-the-ground navigation tools. Unit names vary by state — a GMU, WMU, DMU, or hunt area is the same idea.</p>
+    </div>
+
+    <!-- GMU lookup form -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] gap-4 items-end">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-tan-500">State / Province</span>
+          <select id="gmuState" class="mt-1 w-full rounded-lg bg-forest-900 border border-forest-600 px-3 py-2 text-tan-300 focus:border-blaze-500 focus:outline-none"></select>
+        </label>
+        <label class="block">
+          <span id="gmuUnitLabel" class="text-xs uppercase tracking-wider text-tan-500">GMU / Unit Number</span>
+          <input id="gmuUnit" type="text" inputmode="text" placeholder="e.g. 61"
+                 class="mt-1 w-full rounded-lg bg-forest-900 border border-forest-600 px-3 py-2 text-tan-300 focus:border-blaze-500 focus:outline-none" />
+        </label>
+        <button id="gmuGo" class="rounded-lg bg-blaze-500 hover:bg-blaze-400 active:bg-blaze-600 text-forest-900 font-bold px-4 py-2 text-sm transition whitespace-nowrap">🔍 Look Up Unit</button>
+      </div>
+      <p class="text-xs text-tan-500">Tip: GMU boundaries are defined by roads and drainages, not signs. Always confirm the exact boundary on your agency's official map or a mapping app before you hunt.</p>
+    </div>
+
+    <!-- Lookup result -->
+    <div id="gmuResult" class="hidden"></div>
+
+    <!-- Interactive map -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600 space-y-3">
+      <div class="flex flex-wrap items-center gap-2 justify-between">
+        <div>
+          <h3 class="font-display text-lg text-tan-300 font-bold">Explore the Area</h3>
+          <p class="text-xs text-tan-500">Search a town, trailhead, or landmark near your unit for terrain, roads, and access.</p>
+        </div>
+        <div class="flex gap-2">
+          <input id="mapSearch" type="text" placeholder="Search a place…"
+                 class="rounded-lg bg-forest-900 border border-forest-600 px-3 py-2 text-tan-300 text-sm focus:border-blaze-500 focus:outline-none w-40 sm:w-56" />
+          <button id="mapSearchBtn" class="rounded-lg bg-forest-600 hover:bg-forest-500 px-3 py-2 text-sm font-semibold text-tan-300 transition">Search</button>
+          <button id="mapLocate" title="Center on my location" aria-label="Center on my location"
+                  class="rounded-lg border border-forest-600 hover:bg-forest-700 px-3 py-2 text-sm text-tan-300 transition">📍</button>
+        </div>
+      </div>
+      <div id="gmuMap" class="h-80 sm:h-96 rounded-lg border border-forest-600 overflow-hidden bg-forest-900"></div>
+      <p id="mapHint" class="text-xs text-tan-500">Switch map styles with the layers button (top-right). Map data from USGS, Esri &amp; OpenStreetMap contributors. An internet connection is required to load map tiles.</p>
+    </div>
+
+    <!-- Boundary & navigation resources -->
+    <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-forest-600">
+      <h3 class="font-display text-lg text-tan-300 font-bold mb-3">Boundary &amp; Navigation Resources</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <a href="https://www.onxmaps.com/hunt" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 p-3 transition">
+          <span class="text-2xl">🧭</span>
+          <span><span class="block font-semibold text-tan-300 text-sm">onX Hunt</span><span class="block text-xs text-tan-500">Ownership &amp; unit boundaries</span></span>
+        </a>
+        <a href="https://www.gohunt.com/" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 p-3 transition">
+          <span class="text-2xl">📊</span>
+          <span><span class="block font-semibold text-tan-300 text-sm">GoHunt</span><span class="block text-xs text-tan-500">Unit research &amp; draw odds</span></span>
+        </a>
+        <a href="https://www.huntstand.com/" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 p-3 transition">
+          <span class="text-2xl">📱</span>
+          <span><span class="block font-semibold text-tan-300 text-sm">HuntStand</span><span class="block text-xs text-tan-500">Maps &amp; property lines</span></span>
+        </a>
+        <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 p-3 transition">
+          <span class="text-2xl">🗺️</span>
+          <span><span class="block font-semibold text-tan-300 text-sm">OpenStreetMap</span><span class="block text-xs text-tan-500">Free topo &amp; road maps</span></span>
+        </a>
+        <a href="https://cpw.state.co.us/" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 p-3 transition">
+          <span class="text-2xl">🦌</span>
+          <span><span class="block font-semibold text-tan-300 text-sm">Colorado Parks &amp; Wildlife</span><span class="block text-xs text-tan-500">Official GMU maps &amp; regs</span></span>
+        </a>
+        <a href="https://www.bing.com/maps" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 p-3 transition">
+          <span class="text-2xl">🛰️</span>
+          <span><span class="block font-semibold text-tan-300 text-sm">Bing Maps</span><span class="block text-xs text-tan-500">Aerial imagery &amp; terrain</span></span>
+        </a>
+      </div>
+      <p class="mt-3 text-xs text-tan-500">These are third-party tools listed for convenience. Verify all boundaries against your state/provincial wildlife agency before hunting.</p>
+    </div>
+  </section>
+
+  <!-- ================= 6. CAMPFIRE HUMOR ================= -->
+  <section id="tab-humor" class="tab-panel hidden space-y-6">
+    <div>
+      <h2 class="font-display text-2xl text-tan-300 font-bold">Campfire Humor</h2>
+      <p class="text-sm text-tan-500">Field morale is a legal requirement. Tap any photo or GIF to view it full screen.</p>
+    </div>
+    <div id="humorGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"></div>
+  </section>
+
+</main>
+
+<footer class="border-t border-forest-600 bg-forest-800 mt-8">
+  <div class="max-w-5xl mx-auto px-4 py-5 text-xs text-tan-500 space-y-1">
+    <p class="font-semibold text-tan-400">Backcountry Hunter — field companion</p>
+    <p>Educational use only. Season dates, bag limits, and regulations vary by area and change yearly. Always verify with your state/provincial wildlife agency — <a href="https://cpw.state.co.us/" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Colorado Parks &amp; Wildlife (cpw.state.co.us)</a> — and hunt legally and ethically.</p>
+  </div>
+</footer>
+
+<!-- ============ LIGHTBOX ============ -->
+<div id="lightbox" class="hidden fixed inset-0 z-50 bg-black/90 p-4" role="dialog" aria-modal="true">
+  <button id="lbClose" aria-label="Close"
+    class="absolute top-3 right-3 text-tan-300 text-3xl hover:text-blaze-400 transition p-2">✕</button>
+  <button id="lbPrev" aria-label="Previous"
+    class="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 text-tan-300 text-4xl hover:text-blaze-400 transition p-2">‹</button>
+  <button id="lbNext" aria-label="Next"
+    class="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 text-tan-300 text-4xl hover:text-blaze-400 transition p-2">›</button>
+  <div class="flex flex-col items-center justify-center gap-3 h-full">
+    <img id="lbImg" class="max-h-[80vh] max-w-full object-contain rounded-lg" alt="" />
+    <p id="lbCap" class="text-sm text-tan-400"></p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   BACKCOUNTRY HUNTER — App Logic
+   Sections: storage, tabs, trip planner, species guide, accordion
+   ============================================================ */
+(function () {
+  "use strict";
+  const STORAGE_KEY = "backcountryHunter.v1";
+
+  /* ---------- Persistence ---------- */
+  const defaultState = {
+    trip: { start: "", end: "", hunters: 1, rows: [] },
+  };
+
+  function normalizeRow(r) {
+    r = r || {};
+    return {
+      name: r.name || "",
+      items: r.items || "",
+      notes: r.notes || "",
+      files: Array.isArray(r.files) ? r.files.map(f => ({
+        name: f && f.name ? f.name : "attachment",
+        type: f && f.type ? f.type : "",
+        size: f && f.size ? f.size : 0,
+        data: f && f.data ? f.data : "",
+      })) : [],
+    };
+  }
+  function normalizeTrip(t) {
+    t = Object.assign({}, defaultState.trip, t || {});
+    t.rows = (t.rows || []).map(normalizeRow);
+    t.hunters = Math.max(1, Math.min(30, parseInt(t.hunters, 10) || t.rows.length || 1));
+    return t;
+  }
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(defaultState);
+      const parsed = JSON.parse(raw);
+      return { trip: normalizeTrip(parsed.trip) };
+    } catch (e) { return structuredClone(defaultState); }
+  }
+
+  let saveTimer, saveFailed = false;
+  const saveDot = document.getElementById("saveDot");
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        saveFailed = false;
+      } catch (e) {
+        if (!saveFailed) {
+          saveFailed = true;
+          alert("This device ran out of local storage, so the change couldn't be saved. " +
+                "Try removing a large attachment.");
+        }
+      }
+      saveDot.style.opacity = "1";
+      setTimeout(() => (saveDot.style.opacity = "0"), 900);
+    }, 250);
+  }
+
+  /* ---------- Tabs ---------- */
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const panels = {
+    planner:  document.getElementById("tab-planner"),
+    wildlife: document.getElementById("tab-wildlife"),
+    shot:     document.getElementById("tab-shot"),
+    safety:   document.getElementById("tab-safety"),
+    maps:     document.getElementById("tab-maps"),
+    humor:    document.getElementById("tab-humor"),
+  };
+  tabButtons.forEach(btn => btn.addEventListener("click", () => showTab(btn.dataset.tab)));
+  function showTab(name) {
+    Object.entries(panels).forEach(([k, el]) => el.classList.toggle("hidden", k !== name));
+    tabButtons.forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    if (name === "wildlife") renderSpecies(currentSpecies);
+    if (name === "maps") {
+      initGmuMap();
+      setTimeout(() => { if (gmuMap) gmuMap.invalidateSize(); }, 60);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ============================================================
+     TRIP PLANNER
+     ============================================================ */
+  const els = {
+    start: document.getElementById("tripStart"),
+    end: document.getElementById("tripEnd"),
+    count: document.getElementById("hunterCount"),
+    rows: document.getElementById("mealRows"),
+    empty: document.getElementById("emptyRows"),
+    length: document.getElementById("tripLength"),
+  };
+
+  function renderTripFields() {
+    els.start.value = state.trip.start || "";
+    els.end.value = state.trip.end || "";
+    els.count.value = state.trip.hunters || 1;
+    updateLength();
+  }
+
+  function updateLength() {
+    const { start, end } = state.trip;
+    if (!start || !end) { els.length.textContent = ""; return; }
+    const s = new Date(start), e = new Date(end);
+    const days = Math.round((e - s) / 86400000) + 1;
+    els.length.textContent = days > 0
+      ? `📅 ${days} day${days === 1 ? "" : "s"} in the field (${start} → ${end}).`
+      : "⚠️ End date is before the start date.";
+  }
+
+  function renderRows() {
+    els.rows.innerHTML = "";
+    state.trip.rows.forEach((row, i) => {
+      const el = document.createElement("div");
+      el.className = "rounded-lg bg-forest-900 border border-forest-600 p-3 space-y-2";
+      el.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] gap-2 items-stretch">
+          <input data-i="${i}" data-f="name" value="${escapeAttr(row.name)}" placeholder="Hunter name"
+            class="rounded-md bg-forest-800 border border-forest-600 px-3 py-2 text-tan-300 text-sm focus:border-blaze-500 focus:outline-none" />
+          <input data-i="${i}" data-f="items" value="${escapeAttr(row.items)}" placeholder="Meals / gear they bring (e.g. chili, coffee, firewood)"
+            class="rounded-md bg-forest-800 border border-forest-600 px-3 py-2 text-tan-300 text-sm focus:border-blaze-500 focus:outline-none" />
+          <button data-remove="${i}" title="Remove row" aria-label="Remove row"
+            class="rounded-md border border-red-500/50 text-red-300 hover:bg-red-500/10 px-3 py-2 text-sm transition">✕</button>
+        </div>
+        <button data-attach-toggle="${i}" class="w-full flex items-center gap-2 text-left text-xs font-semibold text-tan-400 hover:text-tan-300 transition">
+          <span class="attach-caret text-blaze-400 transition-transform">▸</span>
+          <span>📎 Hunter Notes &amp; Attachments</span>
+          <span class="attach-badge ml-auto rounded-full bg-forest-600 text-tan-300 px-2 py-0.5 text-[10px] font-bold">${row.files.length}</span>
+        </button>
+        <div class="attach-panel hidden space-y-2 border-t border-forest-700 pt-2">
+          <textarea data-i="${i}" data-f="notes" rows="2" placeholder="Notes for this hunter — license/unit #, dietary needs, medications, emergency contact…"
+            class="w-full rounded-md bg-forest-800 border border-forest-600 px-3 py-2 text-tan-300 text-sm focus:border-blaze-500 focus:outline-none resize-y">${escapeAttr(row.notes)}</textarea>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="inline-flex items-center gap-2 rounded-md border border-forest-600 bg-forest-700 hover:bg-forest-600 px-3 py-1.5 text-xs font-semibold text-tan-300 cursor-pointer transition">
+              📎 Attach files
+              <input type="file" multiple data-file-input="${i}" class="hidden" />
+            </label>
+            <span class="text-[11px] text-tan-500">Notes &amp; files are stored on this device only.</span>
+          </div>
+          <div data-file-chips="${i}" class="file-chips flex flex-wrap gap-2"></div>
+        </div>
+      `;
+      els.rows.appendChild(el);
+      const chips = el.querySelector(`[data-file-chips="${i}"]`);
+      if (chips) chips.innerHTML = fileChipsHtml(row.files, i);
+    });
+    els.empty.classList.toggle("hidden", state.trip.rows.length > 0);
+  }
+
+  function fileChipsHtml(files, i) {
+    if (!files.length) return "";
+    return files.map((f, j) => `
+      <span class="file-chip inline-flex items-center gap-2 rounded-full bg-forest-700 border border-forest-600 pl-3 pr-1 py-1 text-[11px] text-tan-300">
+        <a href="${f.data || "#"}" download="${escapeAttr(f.name)}" title="${escapeAttr(f.name)}"
+           class="truncate max-w-[10rem] hover:text-blaze-400 underline">📄 ${escapeAttr(f.name)}</a>
+        <span class="text-tan-500">${fmtSize(f.size)}</span>
+        <button data-file-remove="${j}" data-row="${i}" title="Remove attachment" aria-label="Remove attachment"
+          class="rounded-full w-5 h-5 grid place-items-center hover:bg-red-500/20 text-red-300">✕</button>
+      </span>`).join("");
+  }
+
+  function fmtSize(b) {
+    if (!b) return "";
+    if (b < 1024) return b + " B";
+    if (b < 1048576) return (b / 1024).toFixed(0) + " KB";
+    return (b / 1048576).toFixed(1) + " MB";
+  }
+
+  function escapeAttr(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function syncHunterCount(n) {
+    n = Math.max(1, Math.min(30, parseInt(n, 10) || 1));
+    state.trip.hunters = n;
+    while (state.trip.rows.length < n) state.trip.rows.push({ name: "", items: "", notes: "", files: [] });
+    while (state.trip.rows.length > n) state.trip.rows.pop();
+    els.count.value = n;
+    renderRows(); save();
+  }
+
+  // Events
+  els.start.addEventListener("change", e => { state.trip.start = e.target.value; updateLength(); save(); });
+  els.end.addEventListener("change",   e => { state.trip.end   = e.target.value; updateLength(); save(); });
+  els.count.addEventListener("change", e => syncHunterCount(e.target.value));
+  document.getElementById("syncHunters").addEventListener("click", () => syncHunterCount(els.count.value));
+  document.getElementById("addRow").addEventListener("click", () => {
+    state.trip.rows.push({ name: "", items: "", notes: "", files: [] });
+    state.trip.hunters = state.trip.rows.length;
+    els.count.value = state.trip.hunters;
+    renderRows(); save();
+  });
+  els.rows.addEventListener("input", e => {
+    const t = e.target;
+    if (t.dataset.f != null) {
+      const i = +t.dataset.i;
+      state.trip.rows[i][t.dataset.f] = t.value;
+      save();
+    }
+  });
+
+  const MAX_FILE = 2 * 1024 * 1024;
+  function updateAttachBadge(i) {
+    const row = state.trip.rows[i];
+    const badge = els.rows.querySelector(`[data-attach-toggle="${i}"] .attach-badge`);
+    if (badge && row) badge.textContent = row.files.length;
+  }
+  function handleFiles(i, fileList) {
+    const row = state.trip.rows[i];
+    if (!row || !fileList) return;
+    Array.from(fileList).forEach(file => {
+      if (file.size > MAX_FILE) {
+        alert(`"${file.name}" is ${fmtSize(file.size)}. Attachments are limited to 2 MB each so the trip plan fits in device storage.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        row.files.push({ name: file.name, type: file.type, size: file.size, data: reader.result });
+        const chips = els.rows.querySelector(`[data-file-chips="${i}"]`);
+        if (chips) chips.innerHTML = fileChipsHtml(row.files, i);
+        updateAttachBadge(i);
+        save();
+      };
+      reader.onerror = () => alert(`Could not read "${file.name}".`);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  els.rows.addEventListener("change", e => {
+    const inp = e.target.closest("[data-file-input]");
+    if (!inp) return;
+    handleFiles(+inp.dataset.fileInput, inp.files);
+    inp.value = "";
+  });
+
+  els.rows.addEventListener("click", e => {
+    const toggle = e.target.closest("[data-attach-toggle]");
+    if (toggle) {
+      const panel = toggle.parentElement.querySelector(".attach-panel");
+      const caret = toggle.querySelector(".attach-caret");
+      const isOpen = !panel.classList.contains("hidden");
+      panel.classList.toggle("hidden", isOpen);
+      if (caret) caret.style.transform = isOpen ? "none" : "rotate(90deg)";
+      return;
+    }
+    const fileBtn = e.target.closest("[data-file-remove]");
+    if (fileBtn) {
+      const i = +fileBtn.dataset.row, j = +fileBtn.dataset.fileRemove;
+      const row = state.trip.rows[i];
+      if (row) {
+        row.files.splice(j, 1);
+        const chips = els.rows.querySelector(`[data-file-chips="${i}"]`);
+        if (chips) chips.innerHTML = fileChipsHtml(row.files, i);
+        updateAttachBadge(i);
+        save();
+      }
+      return;
+    }
+    const btn = e.target.closest("[data-remove]");
+    if (!btn) return;
+    state.trip.rows.splice(+btn.dataset.remove, 1);
+    state.trip.hunters = state.trip.rows.length;
+    els.count.value = state.trip.hunters || 1;
+    renderRows(); save();
+  });
+  document.getElementById("clearPlan").addEventListener("click", () => {
+    if (!confirm("Clear the entire trip plan? This cannot be undone.")) return;
+    state = structuredClone(defaultState);
+    renderTripFields(); renderRows(); save();
+  });
+
+  /* ============================================================
+     WILDLIFE GUIDE DATA
+     ============================================================ */
+  const SPECIES = {
+    deer: {
+      name: "Deer",
+      img: "https://source.unsplash.com/800x500/?deer,wildlife",
+      emoji: "🦌",
+      tagline: "White-tailed vs. Mule Deer — know the difference before you glass.",
+      types: [
+        { t: "White-tailed Deer", d: "Eastern/central forests & farm edges. Fan-shaped white tail, antlers branch from a single main beam. Highly wary; driven by scent and pressure." },
+        { t: "Mule Deer", d: "Western mountains, sage, and open country. Large mule-like ears, forked (bifurcated) antlers, bounding gait. Uses terrain and bedding cover." },
+      ],
+      timing: [
+        ["Season", "Archery typically Sep–Oct; general rifle Oct–Nov (varies widely by state). Peak activity is during the rut."],
+        ["Rut / Behavior", "Whitetail rut peaks ~late Oct–mid Nov; mule deer generally a bit later. Bucks become careless, respond to rattling/grunting, and chase does."],
+        ["Time of Day", "Dawn and dusk are prime. During the rut, bucks move midday too. Hunt travel corridors between food and bedding."],
+        ["Weather", "Cold fronts, falling barometer, and light precipitation trigger movement. Post-storm clearing is a classic killer."],
+        ["Indicators", "Fresh rubs, scrapes, and heavy buck sign; does grouped up signals pre-rut."],
+      ],
+    },
+    bear: {
+      name: "Black Bear",
+      img: "https://source.unsplash.com/800x500/?black-bear,wildlife",
+      emoji: "🐻",
+      tagline: "Bait, spot-and-stalk, or hound — a spring/fall opportunity with a big reward.",
+      types: [
+        { t: "Spring Season", d: "Bears emerge from dens and feed on emerging greens and carcasses. Fur is prime early; hides thin as the season warms." },
+        { t: "Fall Season", d: "Hyperphagia — bears feed heavily to fatten for winter, making bait and food sources deadly. Prime hide condition mid-fall." },
+        { t: "Color Phases", d: "Black bears range from jet black to chocolate, cinnamon, and blonde depending on region." },
+      ],
+      timing: [
+        ["Season", "Spring hunts Apr–Jun; fall hunts Sep–Nov, often overlapping deer season (check regulations)."],
+        ["Time of Day", "Mostly dawn/dusk, but bears move any hour. Consistent feeding patterns at bait are common."],
+        ["Weather", "Bears move ahead of storms and dislike heat — cool, overcast days produce best."],
+        ["Indicators", "Fresh scat, torn logs/stumps, and tracks. Bait sites hit repeatedly just before dark mean he's close."],
+        ["Field Note", "Judge size carefully — sows with cubs are protected in many areas. Look for a wide, blocky head and short ears on mature boars."],
+      ],
+    },
+    elk: {
+      name: "Elk",
+      img: "https://source.unsplash.com/800x500/?elk,wildlife",
+      emoji: "🦌",
+      tagline: "America's mountain deer — the bugle of the Rockies is worth the climb alone.",
+      types: [
+        { t: "Rocky Mountain Elk", d: "The widespread herd of the western mountains (including Colorado's world-class populations) — the classic high-country trophy." },
+        { t: "Roosevelt Elk", d: "Coastal Pacific Northwest rain forests; the largest-bodied elk, darker with heavier antlers and more solitary habits." },
+        { t: "Tule Elk", d: "California's central-valley native; the smallest body, reintroduced after near-extinction and still limited in range." },
+      ],
+      timing: [
+        ["Season", "Archery often opens late Aug–mid Sep around the rut; general rifle hunts run Sep–Oct in the west. Colorado holds the world's largest elk herd — verify exact dates at CPW."],
+        ["Rut / Behavior", "Bull elk bugle, wallow, and rake brush through September, rounding up cow harems. Respond to cow calls and bugling when solo or pressured."],
+        ["Time of Day", "Dawn and dusk are prime for bugling and movement; in the pre-rut, bulls may answer from their beds even at midday."],
+        ["Weather", "First cold fronts and light snow push bulls down from high basins onto feed. Quiet, cool, overcast days routinely beat hot sunshine."],
+        ["Indicators", "Ear-splitting bugles, fresh wallows, raked saplings and rubs. A tight herd of cows almost always means a bull is close."],
+      ],
+    },
+    moose: {
+      name: "Moose",
+      img: "https://source.unsplash.com/800x500/?moose,wildlife",
+      emoji: "🫎",
+      tagline: "The rut is the calling card — huge country, huge animal.",
+      types: [
+        { t: "Rut Hunt", d: "During the rut, bulls respond to calling and raking, making them locatable in otherwise vast country." },
+        { t: "Post-Rut", d: "Later seasons target feeding bulls; more solitary and harder to find but still huntable in pinch points." },
+        { t: "Subspecies", d: "From the giant Alaska-Yukon moose to smaller Shiras and eastern Canada populations — body size and antler spread vary by region." },
+      ],
+      timing: [
+        ["Season", "Rut hunts mid-Sep–early Oct are prime where legal. Check draw/limited-entry rules first."],
+        ["Rut / Behavior", "Bull moose vocalize (grunts), rake brush, and respond to cow calls. Peak activity tends to be early morning and late evening."],
+        ["Time of Day", "First and last light; bulls often bed in dense cover midday."],
+        ["Weather", "Cool, crisp mornings during the rut are ideal. Wind direction is everything in open country."],
+        ["Indicators", "Fresh tracks the size of dinner plates, browse heavily trimmed at ~6 ft, wallows, and peel-marked trees."],
+      ],
+    },
+    duck: {
+      name: "Mallard Duck",
+      img: "https://source.unsplash.com/800x500/?mallard-duck,waterfowl",
+      emoji: "🦆",
+      tagline: "Weather, decoys, and concealment — the migrant hunter's obsession.",
+      types: [
+        { t: "Drake", d: "Iridescent green head, yellow bill, chestnut chest, gray body. The classic mallard look." },
+        { t: "Hen", d: "Mottled brown with orange-and-black bill. Both sexes show the blue speculum patch." },
+        { t: "Puddle vs. Diver", d: "Mallards are puddle ducks — they tip up to feed in shallow water and spring straight off the water when flushing." },
+      ],
+      timing: [
+        ["Season", "Early teal/hunting seasons start as early as Sep; mallard numbers build with the fall migration (Oct–Jan in many areas)."],
+        ["Time of Day", "First light to mid-morning and late afternoon are prime as birds move to feed and roost."],
+        ["Weather", "Fresh northern fronts push birds south — the best hunting comes on and after a cold front with wind to move decoys."],
+        ["Indicators", "Birds trading overhead, feet down over decoys, and new concentrations after weather changes."],
+        ["Field Note", "Identify birds before shooting — hen mallards can be protected or have different limits than drakes in some areas."],
+      ],
+    },
+  };
+
+  let currentSpecies = "deer";
+  const speciesContent = document.getElementById("speciesContent");
+  document.querySelectorAll(".species-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentSpecies = btn.dataset.species;
+      document.querySelectorAll(".species-btn").forEach(b => {
+        const on = b === btn;
+        b.classList.toggle("active", on);
+        b.classList.toggle("bg-blaze-600", on);
+        b.classList.toggle("text-white", on);
+        b.classList.toggle("bg-forest-700", !on);
+        b.classList.toggle("text-tan-400", !on);
+      });
+      renderSpecies(currentSpecies);
+    });
+  });
+
+  function renderSpecies(key) {
+    const s = SPECIES[key];
+    speciesContent.innerHTML = `
+      <article class="bg-forest-800 rounded-xl overflow-hidden card-shadow border border-forest-600 fade-in">
+        <div class="relative h-44 sm:h-56 bg-gradient-to-br from-forest-600 to-forest-900">
+          <img src="${s.img}" alt="${s.name} in the wild" loading="lazy"
+               class="absolute inset-0 w-full h-full object-cover opacity-90"
+               onerror="this.style.display='none';" />
+          <div class="absolute inset-0 bg-gradient-to-t from-forest-900 via-forest-900/30 to-transparent"></div>
+          <div class="absolute bottom-3 left-4">
+            <div class="text-3xl">${s.emoji}</div>
+            <h3 class="font-display text-2xl text-tan-300 font-bold drop-shadow">${s.name}</h3>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-5 space-y-5">
+          <p class="text-sm text-tan-400 italic">${s.tagline}</p>
+
+          <div>
+            <h4 class="text-xs uppercase tracking-widest text-blaze-400 font-bold mb-2">Types &amp; Species</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${s.types.map(t => `
+                <div class="rounded-lg border border-forest-600 bg-forest-900 p-3">
+                  <p class="font-semibold text-tan-300 text-sm">${t.t}</p>
+                  <p class="text-sm text-tan-400 mt-1">${t.d}</p>
+                </div>`).join("")}
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs uppercase tracking-widest text-blaze-400 font-bold mb-2">Best Hunting Times</h4>
+            <div class="space-y-2">
+              ${s.timing.map(([label, text]) => `
+                <div class="flex flex-col sm:flex-row gap-1 sm:gap-3 rounded-lg bg-forest-900/70 border border-forest-600 px-3 py-2">
+                  <span class="shrink-0 sm:w-28 text-xs font-bold uppercase tracking-wide text-tan-300 pt-0.5">${label}</span>
+                  <span class="text-sm text-tan-400">${text}</span>
+                </div>`).join("")}
+            </div>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  /* ============================================================
+     SAFETY ACCORDION
+     ============================================================ */
+  const ACCORDION = [
+    {
+      icon: "🔫", title: "Firearm & Archery Safety — The 4 Primary Rules",
+      html: `
+        <ol class="list-decimal list-inside space-y-2 text-sm text-tan-400">
+          <li><strong class="text-tan-300">Treat every firearm as if it is loaded.</strong></li>
+          <li><strong class="text-tan-300">Never point the muzzle at anything you are not willing to destroy.</strong> Keep it in the safest possible direction at all times.</li>
+          <li><strong class="text-tan-300">Keep your finger off the trigger until your sights are on target and you've decided to shoot.</strong></li>
+          <li><strong class="text-tan-300">Be sure of your target and what lies beyond it.</strong> Identify your game and know your backstop.</li>
+        </ol>
+        <p class="mt-3 text-sm text-tan-400"><strong class="text-blaze-400">Archery add-ons:</strong> inspect arrows/strings for damage every hunt, keep broadheads covered until draw, never nock an arrow around others, and confirm a safe backstop for pass-throughs. Wear arm guards and use a release you've practiced with this season.</p>`,
+    },
+    {
+      icon: "🥩", title: "Field Dressing & Meat Care",
+      html: `
+        <ul class="space-y-2 text-sm text-tan-400">
+          <li>• <strong class="text-tan-300">Cool it fast.</strong> Bacteria multiply above ~40°F. In warm weather, get the animal opened, gutted, and skinned/hung quickly — ideally within the first hour.</li>
+          <li>• <strong class="text-tan-300">Basic steps:</strong> position animal on its back, make a ring cut around the anus, open the belly from sternum to pelvis without puncturing gut, remove the viscera, and save the heart/liver if you eat them.</li>
+          <li>• <strong class="text-tan-300">Keep it clean.</strong> Remove bloodshot meat, dirt, and hair. Don't wash with lake/river water — use clean water or a game bag.</li>
+          <li>• <strong class="text-tan-300">Airflow, not ice baths.</strong> Hang or quarter to let air circulate. Use game bags; a heavy cooler of ice can trap heat if packed carelessly.</li>
+          <li>• <strong class="text-tan-300">Quarter &amp; pack out</strong> in warm conditions or long pack-outs. Keep the meat dry and shaded.</li>
+          <li>• <strong class="text-tan-300">CWD note:</strong> in affected areas, follow agency guidance on handling and testing — don't eat meat from known-positive animals.</li>
+        </ul>
+        <div class="mt-4 rounded-lg border border-forest-600 bg-forest-900 p-3">
+          <h5 class="text-xs uppercase tracking-widest text-blaze-400 font-bold mb-2">Reference Videos — Field Dressing Walkthroughs</h5>
+          <ul class="space-y-1.5 text-sm text-tan-400">
+            <li>▶ <a href="https://www.youtube.com/watch?v=EdFtwFN5G4A" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Field dressing — Video 1</a></li>
+            <li>▶ <a href="https://www.youtube.com/watch?v=XiFbjOD1GYE" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Field dressing — Video 2</a></li>
+            <li>▶ <a href="https://www.youtube.com/watch?v=Kgzt54wcSfU" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Field dressing — Video 3</a></li>
+            <li>▶ <a href="https://www.youtube.com/watch?v=wChBeIwtIS4" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Field dressing — Video 4</a></li>
+            <li>▶ <a href="https://www.youtube.com/watch?v=9xMcYVQC5Ms" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">Field dressing — Video 5</a></li>
+          </ul>
+          <p class="mt-2 text-xs text-tan-500">Videos open in your browser or the YouTube app. Requires an internet connection.</p>
+        </div>`,
+    },
+    {
+      icon: "📜", title: "Regulatory Checklist Before You Hunt",
+      html: `
+        <ul class="space-y-2 text-sm text-tan-400">
+          <li>• <strong class="text-tan-300">Licenses &amp; tags:</strong> carry your hunting license and the correct, validated tag for the species/sex you're hunting (draw, bonus point, or over-the-counter).</li>
+          <li>• <strong class="text-tan-300">Hunter orange / blaze:</strong> know minimum square-inch requirements and whether it's required for the season, garment coverage (hat + vest), and any exceptions.</li>
+          <li>• <strong class="text-tan-300">GMU boundaries:</strong> confirm your Game Management Unit and any special restrictions; units change and borders are often defined by roads and drainages, not signs.</li>
+          <li>• <strong class="text-tan-300">Seasons &amp; method:</strong> verify open dates, legal shooting hours, and legal weapon/method for each season (archery vs. rifle vs. muzzleloader).</li>
+          <li>• <strong class="text-tan-300">Bag &amp; possession limits</strong> and tagging/check-station or reporting requirements (mandatory harvest reports are increasingly common).</li>
+          <li>• <strong class="text-tan-300">Access &amp; permission:</strong> confirm public/private land status, motorized-vehicle rules, and any permits (e.g., backcountry, waterfowl stamps, HIP registration).</li>
+          <li>• When in doubt, contact your state/provincial wildlife agency — Colorado hunters can check everything at <a href="https://cpw.state.co.us/" target="_blank" rel="noopener" class="text-blaze-400 underline hover:text-blaze-500">cpw.state.co.us</a>. Regulations are for the resource — follow them.</li>
+        </ul>`,
+    },
+  ];
+
+  const accWrap = document.getElementById("accordion");
+  ACCORDION.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "bg-forest-800 rounded-xl border border-forest-600 overflow-hidden card-shadow";
+    div.innerHTML = `
+      <button class="acc-trigger w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-forest-700 transition" aria-expanded="false">
+        <span class="text-xl">${item.icon}</span>
+        <span class="flex-1 font-display font-bold text-tan-300">${item.title}</span>
+        <span class="acc-icon text-blaze-400 text-xl transition-transform duration-300">＋</span>
+      </button>
+      <div class="accordion-panel">
+        <div class="px-4 pb-4 sm:px-5 border-t border-forest-600 pt-3">${item.html}</div>
+      </div>`;
+    accWrap.appendChild(div);
+  });
+
+  accWrap.addEventListener("click", e => {
+    const trigger = e.target.closest(".acc-trigger");
+    if (!trigger) return;
+    const panel = trigger.nextElementSibling;
+    const icon = trigger.querySelector(".acc-icon");
+    const open = panel.style.maxHeight && panel.style.maxHeight !== "0px";
+    // close others
+    accWrap.querySelectorAll(".accordion-panel").forEach(p => (p.style.maxHeight = "0px"));
+    accWrap.querySelectorAll(".acc-icon").forEach(ic => { ic.textContent = "＋"; ic.style.transform = "none"; });
+    accWrap.querySelectorAll(".acc-trigger").forEach(t => t.setAttribute("aria-expanded", "false"));
+    if (!open) {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+      icon.textContent = "－"; icon.style.transform = "rotate(180deg)";
+      trigger.setAttribute("aria-expanded", "true");
+    }
+  });
+
+  /* ============================================================
+     MAPS & GMU LOOKUP
+     ============================================================ */
+  const JURISDICTIONS = [
+    { code:"AL", name:"Alabama", term:"Zone", agency:"Alabama Wildlife & Freshwater Fisheries", site:"https://www.outdooralabama.com/" },
+    { code:"AK", name:"Alaska", term:"Unit", agency:"Alaska Dept. of Fish & Game", site:"https://www.adfg.alaska.gov/" },
+    { code:"AZ", name:"Arizona", term:"Unit", agency:"Arizona Game & Fish Dept.", site:"https://www.azgfd.com/" },
+    { code:"AR", name:"Arkansas", term:"Zone", agency:"Arkansas Game & Fish Commission", site:"https://www.agfc.com/" },
+    { code:"CA", name:"California", term:"Zone", agency:"California Dept. of Fish & Wildlife", site:"https://wildlife.ca.gov/" },
+    { code:"CO", name:"Colorado", term:"GMU", agency:"Colorado Parks & Wildlife", site:"https://cpw.state.co.us/" },
+    { code:"CT", name:"Connecticut", term:"Zone", agency:"CT DEEP Wildlife Division", site:"https://portal.ct.gov/DEEP" },
+    { code:"DE", name:"Delaware", term:"Zone", agency:"Delaware DNREC Fish & Wildlife", site:"https://dnrec.delaware.gov/fish-wildlife/" },
+    { code:"DC", name:"District of Columbia", term:"Zone", agency:"DC Dept. of Energy & Environment", site:"https://doee.dc.gov/" },
+    { code:"FL", name:"Florida", term:"Zone", agency:"Florida Fish & Wildlife Conservation Commission", site:"https://myfwc.com/" },
+    { code:"GA", name:"Georgia", term:"Zone", agency:"Georgia Wildlife Resources Division", site:"https://georgiawildlife.com/" },
+    { code:"HI", name:"Hawaii", term:"Unit", agency:"Hawaii DLNR Division of Forestry & Wildlife", site:"https://dlnr.hawaii.gov/dofaw/" },
+    { code:"ID", name:"Idaho", term:"Unit", agency:"Idaho Dept. of Fish & Game", site:"https://idfg.idaho.gov/" },
+    { code:"IL", name:"Illinois", term:"County", agency:"Illinois Dept. of Natural Resources", site:"https://dnr.illinois.gov/" },
+    { code:"IN", name:"Indiana", term:"County", agency:"Indiana DNR Division of Fish & Wildlife", site:"https://www.in.gov/dnr/fish-and-wildlife/" },
+    { code:"IA", name:"Iowa", term:"Zone", agency:"Iowa Dept. of Natural Resources", site:"https://www.iowadnr.gov/" },
+    { code:"KS", name:"Kansas", term:"Unit", agency:"Kansas Dept. of Wildlife & Parks", site:"https://ksoutdoors.com/" },
+    { code:"KY", name:"Kentucky", term:"Area", agency:"Kentucky Dept. of Fish & Wildlife Resources", site:"https://fw.ky.gov/" },
+    { code:"LA", name:"Louisiana", term:"Area", agency:"Louisiana Dept. of Wildlife & Fisheries", site:"https://www.wlf.louisiana.gov/" },
+    { code:"ME", name:"Maine", term:"WMU", agency:"Maine Dept. of Inland Fisheries & Wildlife", site:"https://www.maine.gov/ifw/" },
+    { code:"MD", name:"Maryland", term:"Zone", agency:"Maryland DNR Wildlife & Heritage Service", site:"https://dnr.maryland.gov/wildlife/" },
+    { code:"MA", name:"Massachusetts", term:"Zone", agency:"MassWildlife (Division of Fisheries & Wildlife)", site:"https://www.mass.gov/orgs/division-of-fisheries-and-wildlife" },
+    { code:"MI", name:"Michigan", term:"DMU", agency:"Michigan Dept. of Natural Resources", site:"https://www.michigan.gov/dnr" },
+    { code:"MN", name:"Minnesota", term:"Area", agency:"Minnesota Dept. of Natural Resources", site:"https://www.dnr.state.mn.us/" },
+    { code:"MS", name:"Mississippi", term:"Zone", agency:"Mississippi Dept. of Wildlife, Fisheries & Parks", site:"https://www.mdwfp.com/" },
+    { code:"MO", name:"Missouri", term:"County", agency:"Missouri Dept. of Conservation", site:"https://mdc.mo.gov/" },
+    { code:"MT", name:"Montana", term:"HD", agency:"Montana Fish, Wildlife & Parks", site:"https://fwp.mt.gov/" },
+    { code:"NE", name:"Nebraska", term:"Unit", agency:"Nebraska Game & Parks Commission", site:"https://outdoornebraska.gov/" },
+    { code:"NV", name:"Nevada", term:"Unit", agency:"Nevada Dept. of Wildlife", site:"https://www.ndow.org/" },
+    { code:"NH", name:"New Hampshire", term:"WMU", agency:"New Hampshire Fish & Game Dept.", site:"https://www.wildlife.state.nh.us/" },
+    { code:"NJ", name:"New Jersey", term:"Zone", agency:"NJ DEP Fish & Wildlife", site:"https://www.nj.gov/dep/fgw/" },
+    { code:"NM", name:"New Mexico", term:"Unit", agency:"New Mexico Dept. of Game & Fish", site:"https://www.wildlife.state.nm.us/" },
+    { code:"NY", name:"New York", term:"WMU", agency:"New York State DEC", site:"https://dec.ny.gov/" },
+    { code:"NC", name:"North Carolina", term:"District", agency:"NC Wildlife Resources Commission", site:"https://www.ncwildlife.org/" },
+    { code:"ND", name:"North Dakota", term:"Unit", agency:"North Dakota Game & Fish Dept.", site:"https://gf.nd.gov/" },
+    { code:"OH", name:"Ohio", term:"County", agency:"Ohio DNR Division of Wildlife", site:"https://ohiodnr.gov/" },
+    { code:"OK", name:"Oklahoma", term:"Zone", agency:"Oklahoma Dept. of Wildlife Conservation", site:"https://www.wildlifedepartment.com/" },
+    { code:"OR", name:"Oregon", term:"WMU", agency:"Oregon Dept. of Fish & Wildlife", site:"https://myodfw.com/" },
+    { code:"PA", name:"Pennsylvania", term:"WMU", agency:"Pennsylvania Game Commission", site:"https://www.pgc.pa.gov/" },
+    { code:"RI", name:"Rhode Island", term:"Zone", agency:"Rhode Island DEM Fish & Wildlife", site:"https://dem.ri.gov/" },
+    { code:"SC", name:"South Carolina", term:"WMU", agency:"South Carolina DNR", site:"https://www.dnr.sc.gov/" },
+    { code:"SD", name:"South Dakota", term:"Unit", agency:"South Dakota Game, Fish & Parks", site:"https://gfp.sd.gov/" },
+    { code:"TN", name:"Tennessee", term:"Unit", agency:"Tennessee Wildlife Resources Agency", site:"https://www.tn.gov/twra.html" },
+    { code:"TX", name:"Texas", term:"County", agency:"Texas Parks & Wildlife Dept.", site:"https://tpwd.texas.gov/" },
+    { code:"UT", name:"Utah", term:"Unit", agency:"Utah Division of Wildlife Resources", site:"https://wildlife.utah.gov/" },
+    { code:"VT", name:"Vermont", term:"WMU", agency:"Vermont Fish & Wildlife Dept.", site:"https://vtfishandwildlife.com/" },
+    { code:"VA", name:"Virginia", term:"County", agency:"Virginia Dept. of Wildlife Resources", site:"https://dwr.virginia.gov/" },
+    { code:"WA", name:"Washington", term:"GMU", agency:"Washington Dept. of Fish & Wildlife", site:"https://wdfw.wa.gov/" },
+    { code:"WV", name:"West Virginia", term:"District", agency:"West Virginia DNR", site:"https://wvdnr.gov/" },
+    { code:"WI", name:"Wisconsin", term:"Zone", agency:"Wisconsin Dept. of Natural Resources", site:"https://dnr.wisconsin.gov/" },
+    { code:"WY", name:"Wyoming", term:"Area", agency:"Wyoming Game & Fish Dept.", site:"https://wgfd.wyo.gov/" },
+    { code:"AB", name:"Alberta", term:"WMU", agency:"Alberta Environment & Parks", site:"https://www.alberta.ca/" },
+    { code:"BC", name:"British Columbia", term:"MU", agency:"BC Ministry of Forests", site:"https://www2.gov.bc.ca/" },
+    { code:"SK", name:"Saskatchewan", term:"WMZ", agency:"Saskatchewan Ministry of Environment", site:"https://www.saskatchewan.ca/" },
+    { code:"MB", name:"Manitoba", term:"GHA", agency:"Manitoba Environment & Climate", site:"https://www.gov.mb.ca/" },
+    { code:"ON", name:"Ontario", term:"WMU", agency:"Ontario Ministry of Natural Resources", site:"https://www.ontario.ca/" },
+    { code:"QC", name:"Quebec", term:"Zone", agency:"Quebec Ministère de la Faune", site:"https://www.quebec.ca/" },
+    { code:"NB", name:"New Brunswick", term:"WMZ", agency:"NB Dept. of Natural Resources", site:"https://www.gnb.ca/" },
+    { code:"NS", name:"Nova Scotia", term:"WMZ", agency:"Nova Scotia Dept. of Natural Resources", site:"https://novascotia.ca/" },
+    { code:"PE", name:"Prince Edward Island", term:"WMZ", agency:"PEI Dept. of Environment", site:"https://www.princeedwardisland.ca/" },
+    { code:"NL", name:"Newfoundland & Labrador", term:"Zone", agency:"NL Dept. of Fisheries, Forestry & Agriculture", site:"https://www.gov.nl.ca/" },
+    { code:"YT", name:"Yukon", term:"Area", agency:"Yukon Dept. of Environment", site:"https://yukon.ca/" },
+    { code:"NT", name:"Northwest Territories", term:"Zone", agency:"NWT Environment & Natural Resources", site:"https://www.gov.nt.ca/" },
+    { code:"NU", name:"Nunavut", term:"Area", agency:"Nunavut Dept. of Environment", site:"https://www.gov.nu.ca/" },
+  ];
+
+  const gmuState = document.getElementById("gmuState");
+  const gmuUnit = document.getElementById("gmuUnit");
+  const gmuUnitLabel = document.getElementById("gmuUnitLabel");
+  const gmuResult = document.getElementById("gmuResult");
+
+  JURISDICTIONS.forEach(j => {
+    const o = document.createElement("option");
+    o.value = j.code;
+    o.textContent = j.name;
+    gmuState.appendChild(o);
+  });
+
+  function syncUnitLabel() {
+    const j = JURISDICTIONS.find(x => x.code === gmuState.value);
+    if (j) gmuUnitLabel.textContent = (j.term || "GMU") + " / Unit Number";
+  }
+  try {
+    const savedGmu = JSON.parse(localStorage.getItem("backcountryHunter.gmu") || "{}");
+    if (savedGmu.state) gmuState.value = savedGmu.state;
+    if (savedGmu.unit) gmuUnit.value = savedGmu.unit;
+  } catch (e) {}
+  syncUnitLabel();
+  gmuState.addEventListener("change", syncUnitLabel);
+
+  const linkBtn = "flex items-center gap-2 rounded-lg border border-forest-600 bg-forest-900 hover:border-blaze-500 px-3 py-2.5 text-sm font-semibold text-tan-300 transition";
+
+  function renderGmuResult(jur, unit) {
+    const term = jur.term || "GMU";
+    const qBase = jur.name + " " + term + (unit ? " " + unit : "");
+    const site = jur.site || ("https://www.google.com/search?q=" + encodeURIComponent(jur.name + " hunting regulations"));
+    const title = jur.name + (unit ? " — " + term + " " + unit : "");
+    const mapSearchUrl = "https://www.google.com/search?q=" + encodeURIComponent(qBase + " boundary map");
+    const gmaps = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(qBase);
+
+    gmuResult.classList.remove("hidden");
+    gmuResult.innerHTML = `
+      <div class="bg-forest-800 rounded-xl p-4 sm:p-5 card-shadow border border-blaze-500/60 space-y-4 fade-in">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-blaze-400 font-bold">Unit Lookup</p>
+            <h3 class="font-display text-xl text-tan-300 font-bold">${escapeAttr(title)}</h3>
+            <p class="text-sm text-tan-500">${escapeAttr(jur.agency || jur.name)}</p>
+          </div>
+          <span class="text-3xl">🗺️</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a class="${linkBtn}" href="${site}" target="_blank" rel="noopener">🦌 <span class="flex-1">Official Agency Site</span><span class="text-blaze-400">↗</span></a>
+          <a class="${linkBtn}" href="${site}" target="_blank" rel="noopener">📜 <span class="flex-1">Laws, Seasons &amp; Tags</span><span class="text-blaze-400">↗</span></a>
+          <a class="${linkBtn}" href="${mapSearchUrl}" target="_blank" rel="noopener">🧭 <span class="flex-1">Search Unit Boundary Map</span><span class="text-blaze-400">↗</span></a>
+          <a class="${linkBtn}" href="${gmaps}" target="_blank" rel="noopener">📍 <span class="flex-1">Open in Google Maps</span><span class="text-blaze-400">↗</span></a>
+        </div>
+        <p class="text-xs text-tan-500">Links open in your browser or map app. Boundary accuracy varies — the official agency map is the final word.</p>
+      </div>`;
+    try { localStorage.setItem("backcountryHunter.gmu", JSON.stringify({ state: jur.code, unit: unit || "" })); } catch (e) {}
+    if (gmuMap) flyToQuery(jur.name);
+    gmuResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  document.getElementById("gmuGo").addEventListener("click", () => {
+    const jur = JURISDICTIONS.find(x => x.code === gmuState.value) || JURISDICTIONS[0];
+    renderGmuResult(jur, gmuUnit.value.trim());
+  });
+  gmuUnit.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); document.getElementById("gmuGo").click(); }
+  });
+
+  /* ---------- Interactive map (Leaflet + OpenStreetMap) ---------- */
+  let gmuMap = null, gmuMarker = null;
+  const mapHint = document.getElementById("mapHint");
+  function setHint(msg) { if (mapHint) mapHint.textContent = msg; }
+
+  function initGmuMap() {
+    if (gmuMap) return;
+    if (typeof L === "undefined") {
+      setHint("The map library couldn't load. Use the boundary links above, or connect to the internet and reopen the app.");
+      return;
+    }
+    try {
+      gmuMap = window.L.map("gmuMap", { center: [39.0, -105.5], zoom: 6, zoomControl: true });
+
+      const usgsTopo = window.L.tileLayer(
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 16,
+        attribution: 'USGS The National Map &mdash; <a href="https://www.usgs.gov/" target="_blank" rel="noopener">USGS</a>',
+      });
+      const usgsImagery = window.L.tileLayer(
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 16,
+        attribution: 'USGS The National Map (Imagery Topo) &mdash; <a href="https://www.usgs.gov/" target="_blank" rel="noopener">USGS</a>',
+      });
+      const esriImagery = window.L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 19,
+        attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
+      });
+      const cartoVoyager = window.L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+      });
+
+      usgsTopo.addTo(gmuMap);
+      window.L.control.layers({
+        "USGS Topo": usgsTopo,
+        "USGS Imagery + Topo": usgsImagery,
+        "Satellite (Esri)": esriImagery,
+        "Street (CARTO)": cartoVoyager,
+      }, null, { position: "topright", collapsed: true }).addTo(gmuMap);
+    } catch (e) {
+      gmuMap = null;
+      setHint("Could not start the map on this device. Use the boundary links above.");
+    }
+  }
+
+  function placeMarker(lat, lon, label) {
+    if (!gmuMap) return;
+    if (gmuMarker) gmuMarker.remove();
+    gmuMarker = window.L.marker([lat, lon]).addTo(gmuMap);
+    if (label) gmuMarker.bindPopup(escapeAttr(label)).openPopup();
+  }
+
+  async function photonSearch(q) {
+    const url = "https://photon.komoot.io/api/?limit=1&q=" + encodeURIComponent(q);
+    const res = await fetch(url);
+    const data = await res.json();
+    const f = data && data.features && data.features[0];
+    if (!f) return null;
+    const coords = f.geometry.coordinates;
+    const p = f.properties || {};
+    const label = [p.name, p.city, p.state, p.country].filter(Boolean).slice(0, 3).join(", ");
+    return { lat: coords[1], lon: coords[0], label: label || q };
+  }
+
+  async function flyToQuery(q) {
+    if (!gmuMap) initGmuMap();
+    if (!gmuMap) return;
+    setHint("Locating “" + q + "”…");
+    try {
+      const p = await photonSearch(q);
+      if (!p) { setHint("Couldn't locate “" + q + "”. Try a nearby town or landmark."); return; }
+      gmuMap.flyTo([p.lat, p.lon], 9);
+      placeMarker(p.lat, p.lon, p.label);
+      setHint("Centered on " + p.label + ". Pan and zoom to explore roads and terrain.");
+    } catch (e) {
+      setHint("Map search needs an internet connection. The links above still work.");
+    }
+  }
+
+  document.getElementById("mapSearchBtn").addEventListener("click", () => {
+    const q = document.getElementById("mapSearch").value.trim();
+    if (q) flyToQuery(q);
+  });
+  document.getElementById("mapSearch").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); document.getElementById("mapSearchBtn").click(); }
+  });
+  document.getElementById("mapLocate").addEventListener("click", () => {
+    if (!navigator.geolocation) { setHint("Location is not available on this device."); return; }
+    setHint("Getting your location…");
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        initGmuMap();
+        if (!gmuMap) return;
+        gmuMap.flyTo([pos.coords.latitude, pos.coords.longitude], 11);
+        placeMarker(pos.coords.latitude, pos.coords.longitude, "You are here");
+        setHint("Centered on your location.");
+      },
+      () => setHint("Location permission denied. Search a place instead.")
+    );
+  });
+
+  /* ============================================================
+     CAMPFIRE HUMOR GALLERY
+     ============================================================ */
+  const GALLERY = [
+    { file: "2ihzbj.jpg", cap: "Keeper of the campfire stories.", tag: "pic" },
+    { file: "4Gz34cy.gif", cap: "Opening-morning caffeine levels.", tag: "gif" },
+    { file: "99vspp.jpg", cap: "Sending this to the group chat after a miss.", tag: "pic" },
+    { file: "Hiding Deer.webp", cap: "Stealth level: 100. This deer is hiding.", tag: "pic" },
+    { file: "c6d84a98eb893e1fd67499b97e52a9fc.jpg", cap: "Field-trip photo evidence.", tag: "pic" },
+    { file: "deer-dance.gif", cap: "When the big buck finally walks out.", tag: "gif" },
+    { file: "deer-what.gif", cap: "When he hears you whispering in the stand.", tag: "gif" },
+    { file: "giphy.gif", cap: "Campfire classic.", tag: "gif" },
+    { file: "hunting-deer-animal-vs-human.gif", cap: "The eternal matchup: hunter vs. deer.", tag: "gif" },
+    { file: "images.jpg", cap: "Caption this one yourselves.", tag: "pic" },
+    { file: "images20.jpg", cap: "The one that 'got away'… again.", tag: "pic" },
+    { file: "images5.jpg", cap: "Someone already got into the cooler.", tag: "pic" },
+    { file: "images7.jpg", cap: "Patience — the story behind every trophy.", tag: "pic" },
+    { file: "lick-sniff.gif", cap: "Critical wind-direction assessment.", tag: "gif" },
+  ];
+
+  const humorGrid = document.getElementById("humorGrid");
+  function renderGallery() {
+    humorGrid.innerHTML = GALLERY.map((g, i) => `
+      <button data-gi="${i}" class="group w-full text-left rounded-xl overflow-hidden bg-forest-800 border border-forest-600 hover:border-blaze-500 active:scale-[.98] transition card-shadow">
+        <div class="aspect-video overflow-hidden bg-forest-900">
+          <img src="Hunting Pics/${g.file}" alt="${g.cap}" loading="lazy"
+               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        </div>
+        <div class="px-3 py-2 flex items-center justify-between gap-2">
+          <span class="text-xs text-tan-400 line-clamp-1">${g.cap}</span>
+          <span class="shrink-0 rounded bg-forest-600 text-[10px] uppercase font-bold px-1.5 py-0.5 ${g.tag === "gif" ? "text-blaze-400" : "text-tan-400"}">${g.tag}</span>
+        </div>
+      </button>`).join("");
+  }
+
+  /* ---------- Lightbox ---------- */
+  const lb = document.getElementById("lightbox");
+  const lbImg = document.getElementById("lbImg");
+  const lbCap = document.getElementById("lbCap");
+  let lbIndex = 0;
+  function showLB(i) {
+    const n = GALLERY.length;
+    lbIndex = (i + n * 100) % n;
+    const g = GALLERY[lbIndex];
+    lbImg.src = "Hunting Pics/" + g.file;
+    lbImg.alt = g.cap;
+    lbCap.textContent = g.cap + "  ·  " + g.tag.toUpperCase();
+    lb.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+  function hideLB() {
+    lb.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+  humorGrid.addEventListener("click", e => {
+    const b = e.target.closest("[data-gi]");
+    if (b) showLB(+b.dataset.gi);
+  });
+  document.getElementById("lbClose").addEventListener("click", hideLB);
+  document.getElementById("lbPrev").addEventListener("click", e => { e.stopPropagation(); showLB(lbIndex - 1); });
+  document.getElementById("lbNext").addEventListener("click", e => { e.stopPropagation(); showLB(lbIndex + 1); });
+  lb.addEventListener("click", e => { if (e.target === lb) hideLB(); });
+  document.addEventListener("keydown", e => {
+    if (lb.classList.contains("hidden")) return;
+    if (e.key === "Escape") hideLB();
+    if (e.key === "ArrowLeft") showLB(lbIndex - 1);
+    if (e.key === "ArrowRight") showLB(lbIndex + 1);
+  });
+
+  /* ---------- Init ---------- */
+  renderTripFields();
+  renderRows();
+  renderSpecies("deer");
+  renderGallery();
+})();
+</script>
+</body>
+</html>

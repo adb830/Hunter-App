@@ -1,0 +1,63 @@
+Act as an expert Full-Stack Developer and seasoned Hunting Guide. I need you to build a comprehensive, mobile-responsive web application designed for hunting trip planning and hunter education. 
+
+Please provide the complete HTML, CSS (using Tailwind CSS via CDN), and JavaScript in a single, clean file (or split into clearly marked sections) based on the following requirements:
+
+1. TRIP PLANNER (Interactive Tool)
+- Create a dynamic form where a user can input:
+  * Trip Dates (Start and End)
+  * Number of Hunters (Dynamic numeric input)
+  * Meal Planner Grid: Allow the user to add rows for each hunter's name and the specific food items/meals they are responsible for bringing.
+- Data must persist locally using localStorage so users don't lose their trip plans on refresh.
+
+2. WILDLIFE RESOURCE & HUNTING TIMING GUIDE
+Create a clean, card-based UI with tabs or filters for the following animals: Deer (White-tailed vs. Mule Deer), Black Bear, Moose, and Mallard Duck. Each card must include:
+- A placeholder for an image (using Unsplash source URLs or clean image placeholders).
+- A breakdown of the different types/species where applicable.
+- Best Hunting Times: Detail the optimal seasons, weather conditions, time of day (e.g., dawn/dusk patterns), and behavioral indicators (like the rut for deer/moose).
+
+3. ETHICAL HUNTING & CLEAN KILL SHOT PLACEMENT GUIDE
+Create an educational section explaining shot placement for a clean, ethical kill.
+- Include a visual layout or descriptive diagrams for broadside and quartering-away angles.
+- Detail specific aiming points for Big Game (Deer, Moose, Bear): Vital zone (Heart/Lung) vs. high-shoulder/CNS stops, emphasizing why avoiding the head/neck is critical for ethical hunting.
+- Detail aiming points for Waterfowl (Duck): Leading the bird, wing-shooting mechanics, and pellet spread.
+
+4. ESSENTIAL HUNTER KNOWLEDGE & SAFETY BONUS
+Add a toggleable accordion or grid section for critical field success:
+- Firearm & Archery Safety (The 4 primary rules of gun safety).
+- Field Dressing & Meat Care: Quick bullet points on cooling the meat immediately, avoiding bacteria, and basic field dressing steps.
+- Regulatory Checklist: Reminders for tags, licenses, hunter orange/blaze requirements, and checking local game management unit (GMU) boundaries.
+
+DESIGN & STYLE REQUIREMENTS:
+- Use a modern, rugged, outdoor-themed color palette (deep forest greens, earthy tans, slate grays, and high-visibility orange accents for call-to-actions).
+- Ensure the layout is highly scannable on mobile devices since hunters will use this in the field.
+- Keep the interface clean, accessible, and intuitive.
+
+Can you create an html and an apk for android?
+
+Can you move all the files to Hunter folder on my windows desktop?
+Can you do everything in the Note: also add a link to this website https://cpw.state.co.us/ to get additional information. 
+
+Can you add images and gifs from my hunter app folder under the hunting pics folder to the apps for amusement? 
+
+Can you add Elk information in the wildlife & timing?
+
+Add these youtube video links under Field dressing and meat care for reference on how to field dress 
+https://www.youtube.com/watch?v=EdFtwFN5G4A&list=PLTnWMp4vPJXXbAIZ_6fL9Iobr9wotc5B8
+https://www.youtube.com/watch?v=XiFbjOD1GYE&list=PLTnWMp4vPJXXbAIZ_6fL9Iobr9wotc5B8&index=2
+https://www.youtube.com/watch?v=Kgzt54wcSfU&list=PLaqY9xfKGKdiotE8ZK5yLqJ-Xf-cyfwhm
+https://www.youtube.com/watch?v=wChBeIwtIS4
+https://www.youtube.com/watch?v=9xMcYVQC5Ms
+
+Change the html icon from the Brave lion head to the app icon and rename "index" to "Backcountry Hunter"  
+
+Everything looks good. They only thing I need you to change is the application logo that the user will click to launch the html. please use the crosshairs as the application logo or icon.
+
+Use code with caution.
+To help me tailor this exactly to your vision, let me know:
+• What programming language or framework do you plan to use? (e.g., standard HTML/JS, React, Flutter for mobile apps, or a no-code builder like Bubble?)
+• Should the trip planner support multiple separate trips, or just one trip at a time?
+• Do you want the app to connect to an external API for live weather updates or local hunting regulations?
+
+
+
+There is an AI folder on my desktop that has a Hunter App folder in there is the Backcountry Hunter html and apk. Can you add an attachment field where Hunter notes can be attached in the Meal & Gear Planner for each individual hunter. Can you also add Maps in between Safety & Knowledge and Campfire that allows the hunter to look up any GMU being hunted?
